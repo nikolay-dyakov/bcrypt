@@ -10,7 +10,7 @@ import (
 func main() {
 	password := flag.String("p", "bcrypt", "Password to hash")
 	cost := flag.Int("c", 10, "Cost")
-	copy := flag.Bool("cc", false, "Copy uuid to clipboard")
+	copy := flag.Bool("cc", false, "Copy bcrypt hash to clipboard")
 	flag.Parse()
 	hash, err := bcrypt.GenerateFromPassword([]byte(*password), *cost)
 	if err != nil {
