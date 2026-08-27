@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Test
+        run: go test -race ./...
+
+      - name: Build release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p build dist
+
+          for target in \
+            linux/amd64 \
+            linux/arm64 \
+            darwin/amd64 \
+            darwin/arm64 \
+            windows/amd64 \
+            windows/arm64
+          do
+            os="${target%/*}"
+            arch="${target#*/}"
+            name="bcrypt_${version}_${os}_${arch}"
+            output_dir="build/${name}"
+            binary="bcrypt"
+
+            if [[ "${os}" == "windows" ]]; then
+              binary="bcrypt.exe"
+            fi
+
+            mkdir -p "${output_dir}"
+            CGO_ENABLED=0 GOOS="${os}" GOARCH="${arch}" go build \
+              -trimpath \
+              -ldflags "-s -w -X main.appVersion=${version}" \
+              -o "${output_dir}/${binary}" .
+
+            if [[ "${os}" == "windows" ]]; then
+              archive="${PWD}/dist/${name}.zip"
+              (cd "${output_dir}" && zip -q "${archive}" "${binary}")
+            else
+              tar -C "${output_dir}" -czf "dist/${name}.tar.gz" "${binary}"
+            fi
+          done
+
+          sha256sum dist/*.tar.gz dist/*.zip > dist/checksums.txt
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "bcrypt ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag

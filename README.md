@@ -4,7 +4,31 @@ A small command-line tool for generating bcrypt password hashes.
 
 ## Requirements
 
-- Go 1.27 or newer
+- No local Go installation is required when using a prebuilt release.
+- Building or installing with `go install` requires Go 1.27 or newer.
+
+## Install a prebuilt release
+
+Download the archive for your operating system and processor from the
+[latest GitHub release](https://github.com/nikolay-dyakov/bcrypt/releases/latest):
+
+| Operating system | Intel/AMD 64-bit | ARM 64-bit |
+| --- | --- | --- |
+| Linux | `linux_amd64.tar.gz` | `linux_arm64.tar.gz` |
+| macOS | `darwin_amd64.tar.gz` | `darwin_arm64.tar.gz` |
+| Windows | `windows_amd64.zip` | `windows_arm64.zip` |
+
+Extract the archive and place `bcrypt` (or `bcrypt.exe` on Windows) in a
+directory included in your `PATH`. On Linux and macOS, for example:
+
+```bash
+tar -xzf bcrypt_VERSION_OS_ARCH.tar.gz
+sudo install -m 0755 bcrypt /usr/local/bin/bcrypt
+bcrypt version
+```
+
+Each release includes `checksums.txt` so downloads can be verified before
+installation.
 
 ## Install from GitHub
 

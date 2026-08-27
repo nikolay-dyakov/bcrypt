@@ -70,9 +70,21 @@ func TestRunPrintsVersion(t *testing.T) {
 			if err != nil {
 				t.Fatalf("run returned an error: %v", err)
 			}
-			if got, want := stdout.String(), "bcrypt v"+appVersion+"\n"; got != want {
+			if got, want := stdout.String(), "bcrypt v"+sourceVersion+"\n"; got != want {
 				t.Fatalf("version output = %q, want %q", got, want)
 			}
 		})
+	}
+}
+
+func TestCurrentVersionPrefersBuildVersion(t *testing.T) {
+	originalVersion := appVersion
+	appVersion = "v9.8.7"
+	t.Cleanup(func() {
+		appVersion = originalVersion
+	})
+
+	if got, want := currentVersion(), "9.8.7"; got != want {
+		t.Fatalf("currentVersion() = %q, want %q", got, want)
 	}
 }

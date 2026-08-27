@@ -7,14 +7,18 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
 )
 
+var appVersion string
+
 const (
-	appVersion        = "1.0.0"
+	sourceVersion     = "1.0.0"
 	defaultCost       = 13
 	minimumSecureCost = 10
 	maxPasswordBytes  = 72
@@ -55,7 +59,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		if showVersion && flags.NArg() != 0 {
 			return fmt.Errorf("the version flag does not accept arguments")
 		}
-		_, err := fmt.Fprintf(stdout, "bcrypt v%s\n", appVersion)
+		_, err := fmt.Fprintf(stdout, "bcrypt v%s\n", currentVersion())
 		return err
 	}
 	if flags.NArg() != 0 {
@@ -101,6 +105,19 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 
 	_, err = fmt.Fprintln(stdout, string(hash))
 	return err
+}
+
+func currentVersion() string {
+	if appVersion != "" {
+		return strings.TrimPrefix(appVersion, "v")
+	}
+	if info, ok := debug.ReadBuildInfo(); ok {
+		version := info.Main.Version
+		if version != "" && version != "(devel)" && !strings.HasPrefix(version, "v0.0.0-") && !strings.Contains(version, "+dirty") {
+			return strings.TrimPrefix(version, "v")
+		}
+	}
+	return sourceVersion
 }
 
 func readPassword(stdin io.Reader, stderr io.Writer) ([]byte, error) {
