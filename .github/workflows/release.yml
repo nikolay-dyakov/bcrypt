@@ -5,23 +5,31 @@ on:
     tags:
       - "v*"
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   release:
     name: Build and publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GOTOOLCHAIN: go1.27.0
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v6.0.2
+      # Keep third-party action code out of this write-enabled release job.
+      - name: Check out exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Set up Go
-        uses: actions/setup-go@v7.0.0
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git -c advice.detachedHead=false checkout --detach FETCH_HEAD
+
+      - name: Select Go toolchain
+        run: go version
 
       - name: Test
         run: go test -race ./...

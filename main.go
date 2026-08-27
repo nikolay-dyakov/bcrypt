@@ -18,7 +18,7 @@ import (
 var appVersion string
 
 const (
-	sourceVersion     = "1.0.0"
+	sourceVersion     = "1.0.1"
 	defaultCost       = 13
 	minimumSecureCost = 10
 	maxPasswordBytes  = 72
